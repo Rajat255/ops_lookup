@@ -1,0 +1,53 @@
+import boto3
+import zipfile
+import os
+import json
+import re
+
+# Credentials
+aws_access_key_id = ""
+aws_secret_access_key = "/"
+bucket_name = "rajat-5262"
+zip_file_key = "2023/10/28/"  # The path to the zip file in the S3 bucket
+
+# S3 client info
+s3 = boto3.client(
+    "s3",
+    aws_access_key_id=aws_access_key_id,
+    aws_secret_access_key=aws_secret_access_key,
+)
+
+# Object info whcich is to be downloaded
+obj = s3.list_objects(Bucket=bucket_name, Prefix=zip_file_key)
+print(obj["Contents"][1]["Key"])
+zipfile1 = obj["Contents"][1]["Key"]
+
+# Download the zip file from S3
+s3.download_file(bucket_name, zipfile1, "downloaded.zip")
+print(os.getcwd())
+path = ""
+
+# Unzip the zip file
+with zipfile.ZipFile(os.path.join(path, "downloaded.zip"), "r") as zip_ref:
+    zip_ref.extractall("unzipped")
+filename = ""
+print(filename)
+for file in os.walk(os.path.join(path, "unzipped")):
+    filename = file[2][0]
+    print(file[2][0])
+
+# Creating path to my file
+readfilepath = os.path.join(path, "unzipped", filename)
+print(readfilepath)
+
+# Changing }{ to },{
+with open(readfilepath, "r") as file:
+    data_with_commas = re.sub(r"}{", "},{", file.read())
+
+# Add square brackets to make it a valid JSON array
+data_with_commas = f"[{data_with_commas}]"
+
+json_data = json.loads(data_with_commas)
+
+#printing the json data
+print(json_data)
